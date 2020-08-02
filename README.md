@@ -1,7 +1,5 @@
 ## Simple Weather App
 
-A new Flutter project.
-
 ## Getting Started
 
 1. Clone repository
