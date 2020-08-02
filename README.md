@@ -1,4 +1,4 @@
-# first_test
+## Simple Weather App
 
 A new Flutter project.
 
