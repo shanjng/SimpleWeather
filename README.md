@@ -1,7 +1,7 @@
 # Simple Weather App 🌦
 
 ## Purpose
-To deliver weather forecasts in a fast, easy, and obvious way, but also still provide customization and sufficient forecast information. 
+To deliver weather forecasts in a fast, easy, and obvious way, but also still provide customization and sufficient weather forecast information. 
 
 ## Getting Started
 1. Clone repository
