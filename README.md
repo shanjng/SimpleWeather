@@ -10,8 +10,8 @@ To deliver weather forecasts in a fast, easy, and obvious way, but also still pr
 4. Press F5 in VSCode to start debugging and emulating for iOS or Android
 
 ## How to Run and Deploy on...
-- iOS: https://flutter.dev/docs/deployment/ios
-- Android: https://flutter.dev/docs/deployment/android
+- iOS phone: https://flutter.dev/docs/deployment/ios
+- Android phone: https://flutter.dev/docs/deployment/android
 
 ## Features
 - Add locations for weather forecasting
