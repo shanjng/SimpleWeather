@@ -1,5 +1,8 @@
 # Simple Weather App 🌦
 
+## Purpose
+To deliver weather forecasts in a fast, easy, and obvious way, but also still provide customization and sufficient forecast information. 
+
 ## Getting Started
 1. Clone repository
 2. Download [Flutter SDK](https://flutter.dev/docs/get-started/install) and run `flutter doctor`to make sure you've downloaded all necesary software to run Flutter applications
