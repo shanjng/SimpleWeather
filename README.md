@@ -12,7 +12,7 @@
 
 ## Features
 - Add locations for weather forecasting
-- Current, Hourly, and Daily temperature forecasting
+- Current, hourly, and daily temperature forecasting
 - Current humidity, wind direction, and wind speed measurements
 
 <img src="https://github.com/shanjng/SimpleWeather/blob/master/app_test.gif" alt="SimpleWeather Demo GIF"
