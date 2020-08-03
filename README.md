@@ -1,3 +1,5 @@
+<img src="https://github.com/shanjng/SimpleWeather/blob/master/app_test.gif" alt="SimpleWeather Demo GIF"
+	title="SimpleWeather Demo" align="right" width="300" height="650" />
 ## Simple Weather App 🌦
 
 ## Getting Started
@@ -16,6 +18,3 @@ https://flutter.dev/docs/deployment/android
 - Add locations for weather forecasting
 - Current, Hourly, and Daily temperature forecasting
 - Current humidity, wind direction, and wind speed measurements
-
-![alt-text](https://github.com/shanjng/SimpleWeather/blob/master/app_test.gif)
-
