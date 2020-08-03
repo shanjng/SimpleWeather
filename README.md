@@ -3,8 +3,9 @@
 ## Getting Started
 
 1. Clone repository
-2. Run `flutter pub get` in project directory to download dependencies
-3. Press F5 to start debugging and emulating on iOS or Android
+2. Download [Flutter SDK](https://flutter.dev/docs/get-started/install) and run `flutter doctor`to make sure you've downloaded all necesary software to run Flutter applications
+3. Run `flutter pub get` in project directory to download project dependencies
+4. Press F5 in VSCode to start debugging and emulating for iOS or Android
 
 ## How to Run and Deploy on...
 - iOS: https://flutter.dev/docs/deployment/ios
