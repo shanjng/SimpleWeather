@@ -7,8 +7,8 @@
 3. Press F5 to start debugging and emulating on iOS or Android
 
 ## How to Run and Deploy on...
-- on iOS: https://flutter.dev/docs/deployment/ios
-- on Android: https://flutter.dev/docs/deployment/android
+- iOS: https://flutter.dev/docs/deployment/ios
+- Android: https://flutter.dev/docs/deployment/android
 
 ## Features
 - Add locations for weather forecasting
