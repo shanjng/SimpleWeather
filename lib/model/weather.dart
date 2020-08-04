@@ -6,7 +6,7 @@ class Weather {
   final String city;
   final dynamic dailyDayTemp;
   final dynamic hourlyTemp;
-  final dynamic currentWeatherIcon;
+  final String currentWeatherIcon;
 
   Weather(
       {this.temp,
@@ -29,8 +29,6 @@ class Weather {
       hourlyTemp: json["hourly"].map((hour) => hour["temp"]).toList(),
       currentWeatherIcon: json["current"]["weather"][0]["icon"],
     );
-
-    print(x.currentWeatherIcon);
 
     return x;
   }

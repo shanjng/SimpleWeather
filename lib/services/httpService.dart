@@ -5,12 +5,12 @@ import 'package:first_test/model/weather.dart';
 import 'package:first_test/constants.dart';
 
 abstract class IHttpService {
-  Future<Weather> fetchWeather(String city);
+  Future<Weather> getWeather(String city);
 }
 
 class HttpService implements IHttpService {
   @override
-  Future<Weather> fetchWeather(String city) async {
+  Future<Weather> getWeather(String city) async {
     // final decodedCity = city.split(', ')[0];
     final jsonString =
         await FileDataHelper.instance.getFileData('assets/maps/city.list.json');
