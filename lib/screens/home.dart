@@ -36,7 +36,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    SharedPreferencesHelper.instance.clearLocations();
+    // SharedPreferencesHelper.instance.clearLocations();
     _getDaysOfWeek();
     _loadData();
     _loadCities();
@@ -398,118 +398,115 @@ class _HomeState extends State<Home> {
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
-        drawer: SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Drawer(
-            child: SafeArea(
-              child: !_isLoadingCities
-                  ? (!_editingLocations
-                      ? Column(
-                          children: <Widget>[
-                            ListView.builder(
-                              scrollDirection: Axis.vertical,
-                              shrinkWrap: true,
-                              itemCount: _locations.length,
-                              itemBuilder: (context, index) {
-                                return Card(
-                                  child: ListTile(
-                                    title: Text(_locations[index]),
-                                  ),
-                                );
-                              },
+        drawer: Drawer(
+          child: SafeArea(
+            child: !_isLoadingCities
+                ? (!_editingLocations
+                    ? Column(
+                        children: <Widget>[
+                          ListView.builder(
+                            scrollDirection: Axis.vertical,
+                            shrinkWrap: true,
+                            itemCount: _locations.length,
+                            itemBuilder: (context, index) {
+                              return Card(
+                                child: ListTile(
+                                  title: Text(_locations[index]),
+                                ),
+                              );
+                            },
+                          ),
+                          Card(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: IconButton(
+                                icon: Icon(Icons.add, color: Colors.black),
+                                onPressed: () {
+                                  setState(() {
+                                    _editingLocations = true;
+                                  });
+                                },
+                              ),
                             ),
-                            Card(
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: IconButton(
-                                  icon: Icon(Icons.add, color: Colors.black),
-                                  onPressed: () {
-                                    setState(() {
-                                      _editingLocations = true;
-                                    });
-                                  },
-                                ),
+                          )
+                        ],
+                      )
+                    : Container(
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                onChanged: (value) {
+                                  filterSearchResults(value);
+                                },
+                                controller: _editingController,
+                                decoration: InputDecoration(
+                                    labelText: "Search",
+                                    hintText: "Search",
+                                    prefixIcon: Icon(Icons.search),
+                                    border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(25.0)))),
                               ),
-                            )
-                          ],
-                        )
-                      : Container(
-                          child: Column(
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextField(
-                                  onChanged: (value) {
-                                    filterSearchResults(value);
-                                  },
-                                  controller: _editingController,
-                                  decoration: InputDecoration(
-                                      labelText: "Search",
-                                      hintText: "Search",
-                                      prefixIcon: Icon(Icons.search),
-                                      border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(25.0)))),
-                                ),
-                              ),
-                              Expanded(
-                                child: ListView.builder(
-                                    scrollDirection: Axis.vertical,
-                                    itemCount: _citySearchList == null
-                                        ? 0
-                                        : _citySearchList.length,
-                                    itemBuilder: (context, index) {
-                                      return Card(
-                                        child: ListTile(
-                                          title: Text(_citySearchList[index]),
-                                          trailing: Icon(Icons.add,
-                                              color: Colors.black),
-                                          onTap: () async {
-                                            final location =
-                                                _citySearchList[index]
-                                                    .split(',')
-                                                    .first
-                                                    .trim();
+                            ),
+                            Expanded(
+                              child: ListView.builder(
+                                  scrollDirection: Axis.vertical,
+                                  itemCount: _citySearchList == null
+                                      ? 0
+                                      : _citySearchList.length,
+                                  itemBuilder: (context, index) {
+                                    return Card(
+                                      child: ListTile(
+                                        title: Text(_citySearchList[index]),
+                                        trailing: Icon(Icons.add,
+                                            color: Colors.black),
+                                        onTap: () async {
+                                          final location =
+                                              _citySearchList[index]
+                                                  .split(',')
+                                                  .first
+                                                  .trim();
 
-                                            final locations = [..._locations];
-                                            print(locations);
-                                            if (!locations.contains(location)) {
-                                              await SharedPreferencesHelper
-                                                  .instance
-                                                  .writeLocation(
-                                                      _citySearchList[index]);
+                                          final locations = [..._locations];
+                                          print(locations);
+                                          if (!locations.contains(location)) {
+                                            await SharedPreferencesHelper
+                                                .instance
+                                                .writeLocation(
+                                                    _citySearchList[index]);
 
-                                              locations.add(location);
+                                            locations.add(location);
 
-                                              final weather = await _httpService
-                                                  .getWeather(location);
+                                            final weather = await _httpService
+                                                .getWeather(location);
 
-                                              final weatherData = [
-                                                ..._weatherData
-                                              ];
-                                              weatherData.add(weather);
-
-                                              setState(() {
-                                                _weatherData = weatherData;
-                                              });
-                                            }
-
-                                            print(locations);
+                                            final weatherData = [
+                                              ..._weatherData
+                                            ];
+                                            weatherData.add(weather);
 
                                             setState(() {
-                                              _editingLocations = false;
-                                              _locations = locations;
+                                              _weatherData = weatherData;
                                             });
-                                          },
-                                        ),
-                                      );
-                                    }),
-                              ),
-                            ],
-                          ),
-                        ))
-                  : CircularProgressIndicator(),
-            ),
+                                          }
+
+                                          print(locations);
+
+                                          setState(() {
+                                            _editingLocations = false;
+                                            _locations = locations;
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  }),
+                            ),
+                          ],
+                        ),
+                      ))
+                : CircularProgressIndicator(),
           ),
         ),
         extendBodyBehindAppBar: true,

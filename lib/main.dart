@@ -11,8 +11,6 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Simple Weather',
       theme: ThemeData(
-        // primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Filson',
       ),
       home: Home(),
