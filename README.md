@@ -19,5 +19,5 @@ To deliver weather forecasts in a fast, easy, and obvious way, but also still pr
 - Current humidity, wind direction, and wind speed measurements
 
 ## Demo
-<img src="https://github.com/shanjng/SimpleWeather/blob/master/app_test.gif" alt="SimpleWeather Demo GIF"
+<img src="https://github.com/shanjng/SimpleWeather/blob/master/app_test.gif " alt="SimpleWeather Demo GIF"
 	title="SimpleWeather Demo" width="300" height="650" />
