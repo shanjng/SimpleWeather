@@ -1,12 +1,13 @@
 import 'dart:ui';
+import 'package:first_test/bloc/weather_bloc.dart';
 import 'package:first_test/constants.dart';
 import 'package:first_test/helpers/directionsHelper.dart';
-import 'package:first_test/helpers/getCities.dart';
 import 'package:first_test/helpers/sharedPreferencesHelper.dart';
 import 'package:first_test/model/weather.dart';
 import 'package:first_test/services/httpService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'dart:core';
 
@@ -24,22 +25,23 @@ class _HomeState extends State<Home> {
   final List<String> _daysOfWeek = [];
   final PageController _pageController = PageController();
   final IHttpService _httpService = HttpService();
-  List<Weather> _weatherData;
-  bool _isLoading = true;
-  bool _isLoadingCities = true;
-  List<String> _cities;
   List<String> _citySearchList = [];
   TextEditingController _editingController = TextEditingController();
   String filter;
-  List<String> _locations = [];
+  WeatherBloc _weatherBloc;
 
   @override
   void initState() {
     super.initState();
-    // SharedPreferencesHelper.instance.clearLocations();
+
     _getDaysOfWeek();
-    _loadData();
-    _loadCities();
+
+    _weatherBloc = BlocProvider.of<WeatherBloc>(context);
+
+    _weatherBloc.add(LoadInitialData());
+    // _getDaysOfWeek();
+    // _loadData();
+    // _loadCities();
   }
 
   @override
@@ -47,55 +49,6 @@ class _HomeState extends State<Home> {
     _pageController.dispose();
     _editingController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadData() async {
-    if (mounted) {
-      setState(() {
-        _isLoading = true;
-      });
-    }
-
-    final locations = await SharedPreferencesHelper.instance.readLocations();
-
-    final List<Future<Weather>> requests = [];
-    List<Weather> weatherData = [];
-
-    if (locations != null) {
-      for (String location in locations) {
-        final splits = location.split(',').toList();
-        requests.add(_httpService.getWeather(splits.first.trim()));
-        location = splits.first.trim();
-      }
-
-      weatherData = await Future.wait(requests);
-    }
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        _locations = locations == null ? [] : locations;
-        _weatherData = weatherData;
-      });
-    }
-  }
-
-  Future<void> _loadCities() async {
-    if (mounted) {
-      setState(() {
-        _isLoadingCities = true;
-      });
-    }
-
-    _cities = await GetCitiesHelper.instance.getCities();
-
-    _citySearchList.addAll(_cities);
-
-    if (mounted) {
-      setState(() {
-        _isLoadingCities = false;
-      });
-    }
   }
 
   String _getWeatherIcon(Weather weather) {
@@ -117,9 +70,9 @@ class _HomeState extends State<Home> {
     _daysOfWeek.addAll(WEEKDAYS.getRange(0, _dayOfWeek));
   }
 
-  void filterSearchResults(String query) {
+  void filterSearchResults(String query, List<String> cities) {
     List<String> dummySearchList = List<String>();
-    dummySearchList.addAll(_cities);
+    dummySearchList.addAll(cities);
     if (query.isNotEmpty) {
       List<String> dummyListData = List<String>();
       dummySearchList.forEach((item) {
@@ -135,12 +88,20 @@ class _HomeState extends State<Home> {
     } else {
       setState(() {
         _citySearchList.clear();
-        _citySearchList.addAll(_cities);
+        _citySearchList.addAll(cities);
       });
     }
   }
 
-  Widget _getGeneralWeather() {
+  void _emptySearchResults(List<String> cities) {
+    setState(() {
+      _editingController.clear();
+      _citySearchList.clear();
+      _citySearchList.addAll(cities);
+    });
+  }
+
+  Widget _getGeneralWeather(List<Weather> weatherData, List<String> locations) {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: <Widget>[
@@ -149,13 +110,14 @@ class _HomeState extends State<Home> {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Image.asset(
-                'assets/images/cloud_icon.png',
-                // _getWeatherIcon(_weatherData.first),
-                scale: 2,
-              ),
+              locations.length == 0
+                  ? Container()
+                  : Image.asset(
+                      'assets/images/cloud_icon.png',
+                      scale: 2,
+                    ),
               Text(
-                _weatherData.length != 0 ? '${_weatherData.first.temp}°' : '',
+                weatherData.length != 0 ? '${weatherData.first.temp}°' : '',
                 style: TextStyle(
                   fontSize: 60,
                   color: Colors.white,
@@ -169,7 +131,7 @@ class _HomeState extends State<Home> {
           child: ListView.builder(
             shrinkWrap: true,
             scrollDirection: Axis.horizontal,
-            itemCount: _locations.length,
+            itemCount: locations.length,
             itemBuilder: (context, index) => GestureDetector(
               onTap: () => setState(() {
                 _locationIndex = index;
@@ -194,25 +156,16 @@ class _HomeState extends State<Home> {
                             child: Row(
                               children: <Widget>[
                                 Text(
-                                  _weatherData[index].city,
+                                  weatherData[index].city,
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 30),
                                 ),
                                 VerticalDivider(color: Colors.white),
                                 Text(
-                                  '${_weatherData[index].temp}°',
+                                  '${weatherData[index].temp}°',
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 30),
                                 ),
-                                // VerticalDivider(color: Colors.white),
-                                // Container(
-                                //   decoration: BoxDecoration(
-                                //     image: DecorationImage(
-                                //         image: NetworkImage(
-                                //             'http://openweathermap.org/img/wn/${_weatherData[_locationIndex].currentWeatherIcon}@2x.png'),
-                                //         fit: BoxFit.cover),
-                                //   ),
-                                // )
                               ],
                             ),
                           ),
@@ -220,7 +173,7 @@ class _HomeState extends State<Home> {
                             child: Row(
                               children: <Widget>[
                                 Text(
-                                  'Humidity: ${_weatherData[index].humidity}%',
+                                  'Humidity: ${weatherData[index].humidity}%',
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 15),
                                 ),
@@ -228,13 +181,13 @@ class _HomeState extends State<Home> {
                                 Text(
                                   DirectionsHelper.instance
                                       .toTextualDescription(
-                                          _weatherData[index].windDeg),
+                                          weatherData[index].windDeg),
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 15),
                                 ),
                                 VerticalDivider(color: Colors.white),
                                 Text(
-                                  '${_weatherData[index].windSpeed} m/s',
+                                  '${weatherData[index].windSpeed} m/s',
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 15),
                                 )
@@ -254,7 +207,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _getMoreWeatherCard() {
+  Widget _getMoreWeatherCard(List<Weather> weatherData) {
     return Column(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -267,7 +220,7 @@ class _HomeState extends State<Home> {
               'assets/images/cloud_icon.png',
               scale: 2,
             ),
-            Text('${_weatherData[_locationIndex].temp}°',
+            Text('${weatherData[_locationIndex].temp}°',
                 style: TextStyle(fontSize: 60, color: Colors.white)),
           ],
         ),
@@ -315,7 +268,7 @@ class _HomeState extends State<Home> {
                                               color: Colors.white,
                                               fontSize: 30)),
                                       Text(
-                                        '${_weatherData[_locationIndex].dailyDayTemp[index]}°',
+                                        '${weatherData[_locationIndex].dailyDayTemp[index]}°',
                                         style: TextStyle(
                                             color: Colors.white, fontSize: 30),
                                       ),
@@ -342,7 +295,7 @@ class _HomeState extends State<Home> {
                                               color: Colors.white,
                                               fontSize: 30)),
                                       Text(
-                                        '${_weatherData[_locationIndex].hourlyTemp[index]}°',
+                                        '${weatherData[_locationIndex].hourlyTemp[index]}°',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 30,
@@ -358,7 +311,7 @@ class _HomeState extends State<Home> {
                         SmoothPageIndicator(
                           controller: _pageController,
                           count: 2,
-                          effect: WormEffect(),
+                          effect: WormEffect(activeDotColor: Colors.blue),
                         )
                       ],
                     ),
@@ -387,11 +340,22 @@ class _HomeState extends State<Home> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildLoading() {
+    return Container(
+        color: Colors.black,
+        alignment: Alignment.center,
+        child: CircularProgressIndicator(
+          valueColor:
+              new AlwaysStoppedAnimation<Color>(const Color(0xff36454f)),
+        ));
+  }
+
+  Widget _buildLoaded(
+      List<Weather> weatherData, List<String> locations, List<String> cities) {
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
       child: Scaffold(
+        resizeToAvoidBottomPadding: false,
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           title: const Text('Simple Weather'),
@@ -400,113 +364,105 @@ class _HomeState extends State<Home> {
         ),
         drawer: Drawer(
           child: SafeArea(
-            child: !_isLoadingCities
-                ? (!_editingLocations
-                    ? Column(
-                        children: <Widget>[
-                          ListView.builder(
-                            scrollDirection: Axis.vertical,
-                            shrinkWrap: true,
-                            itemCount: _locations.length,
-                            itemBuilder: (context, index) {
-                              return Card(
-                                child: ListTile(
-                                  title: Text(_locations[index]),
-                                ),
-                              );
-                            },
+            child: !_editingLocations
+                ? Column(
+                    children: <Widget>[
+                      ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: locations.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            child: ListTile(
+                              title: Text(locations[index]),
+                            ),
+                          );
+                        },
+                      ),
+                      Card(
+                        child: ListTile(
+                          title: Text(
+                            "Add a New Location!",
+                            style: TextStyle(color: Color(0xff36454f)),
                           ),
-                          Card(
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: IconButton(
-                                icon: Icon(Icons.add, color: Colors.black),
-                                onPressed: () {
-                                  setState(() {
-                                    _editingLocations = true;
-                                  });
-                                },
-                              ),
-                            ),
-                          )
-                        ],
-                      )
-                    : Container(
-                        child: Column(
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextField(
-                                onChanged: (value) {
-                                  filterSearchResults(value);
-                                },
-                                controller: _editingController,
-                                decoration: InputDecoration(
-                                    labelText: "Search",
-                                    hintText: "Search",
-                                    prefixIcon: Icon(Icons.search),
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(25.0)))),
-                              ),
-                            ),
-                            Expanded(
-                              child: ListView.builder(
-                                  scrollDirection: Axis.vertical,
-                                  itemCount: _citySearchList == null
-                                      ? 0
-                                      : _citySearchList.length,
-                                  itemBuilder: (context, index) {
-                                    return Card(
-                                      child: ListTile(
-                                        title: Text(_citySearchList[index]),
-                                        trailing: Icon(Icons.add,
-                                            color: Colors.black),
-                                        onTap: () async {
-                                          final location =
-                                              _citySearchList[index]
-                                                  .split(',')
-                                                  .first
-                                                  .trim();
-
-                                          final locations = [..._locations];
-                                          print(locations);
-                                          if (!locations.contains(location)) {
-                                            await SharedPreferencesHelper
-                                                .instance
-                                                .writeLocation(
-                                                    _citySearchList[index]);
-
-                                            locations.add(location);
-
-                                            final weather = await _httpService
-                                                .getWeather(location);
-
-                                            final weatherData = [
-                                              ..._weatherData
-                                            ];
-                                            weatherData.add(weather);
-
-                                            setState(() {
-                                              _weatherData = weatherData;
-                                            });
-                                          }
-
-                                          print(locations);
-
-                                          setState(() {
-                                            _editingLocations = false;
-                                            _locations = locations;
-                                          });
-                                        },
-                                      ),
-                                    );
-                                  }),
-                            ),
-                          ],
+                          trailing: Icon(Icons.add, color: Color(0xff36454f)),
+                          onTap: () {
+                            setState(() {
+                              _editingLocations = true;
+                            });
+                          },
                         ),
-                      ))
-                : CircularProgressIndicator(),
+                      ),
+                    ],
+                  )
+                : Container(
+                    child: GestureDetector(
+                      onPanUpdate: (details) {
+                        if (details.delta.dx > 0) {
+                          _emptySearchResults(cities);
+                          setState(
+                            () {
+                              _editingLocations = false;
+                            },
+                          );
+                        }
+                      },
+                      child: Column(
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              onChanged: (value) {
+                                filterSearchResults(value, cities);
+                              },
+                              controller: _editingController,
+                              decoration: InputDecoration(
+                                  labelText: "Search",
+                                  hintText: "Search",
+                                  prefixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(25.0)))),
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                                scrollDirection: Axis.vertical,
+                                itemCount: _citySearchList == null
+                                    ? 0
+                                    : _citySearchList.length,
+                                itemBuilder: (context, index) {
+                                  return Card(
+                                    child: ListTile(
+                                      title: Text(
+                                        _citySearchList[index],
+                                        style:
+                                            TextStyle(color: Color(0xff36454f)),
+                                      ),
+                                      trailing: Icon(
+                                        Icons.add,
+                                        color: Color(0xff36454f),
+                                      ),
+                                      onTap: () {
+                                        _weatherBloc.add(AddCity(
+                                            _citySearchList[index],
+                                            weatherData,
+                                            cities));
+
+                                        _emptySearchResults(cities);
+
+                                        setState(() {
+                                          _editingLocations = false;
+                                        });
+                                      },
+                                    ),
+                                  );
+                                }),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
           ),
         ),
         extendBodyBehindAppBar: true,
@@ -518,13 +474,32 @@ class _HomeState extends State<Home> {
               fit: BoxFit.cover,
             ),
           ),
-          child: _isLoading
-              ? CircularProgressIndicator()
-              : SafeArea(
-                  child: !_displayMoreWeather
-                      ? _getGeneralWeather()
-                      : _getMoreWeatherCard(),
-                ),
+          child: SafeArea(
+            child: !_displayMoreWeather
+                ? _getGeneralWeather(weatherData, locations)
+                : _getMoreWeatherCard(weatherData),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: BlocListener<WeatherBloc, WeatherState>(
+        listener: (context, state) {
+          if (state is WeatherInitial) {}
+        },
+        child: BlocBuilder<WeatherBloc, WeatherState>(
+          builder: (context, state) {
+            if (state is WeatherLoading) {
+              return _buildLoading();
+            } else if (state is WeatherInitial) {
+              return _buildLoaded(
+                  state.weatherData, state.locations, state.cities);
+            }
+          },
         ),
       ),
     );

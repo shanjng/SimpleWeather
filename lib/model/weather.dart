@@ -1,4 +1,6 @@
-class Weather {
+import 'package:equatable/equatable.dart';
+
+class Weather extends Equatable {
   final double temp;
   final double humidity;
   final double windSpeed; // m/s
@@ -32,4 +34,16 @@ class Weather {
 
     return x;
   }
+
+  @override
+  List<Object> get props => [
+        this.temp,
+        this.humidity,
+        this.windSpeed,
+        this.windDeg,
+        this.city,
+        this.dailyDayTemp,
+        this.hourlyTemp,
+        this.currentWeatherIcon,
+      ];
 }

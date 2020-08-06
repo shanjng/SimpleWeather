@@ -8,21 +8,23 @@ class SharedPreferencesHelper {
   Future<List<String>> readLocations() async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'locations';
-    final value = prefs.getStringList(key);
+    final locations = prefs.getStringList(key) ?? [];
 
-    return value;
+    return locations;
   }
 
-  Future<bool> writeLocation(String location) async {
+  Future<List<String>> writeLocation(String location) async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'locations';
-    List<String> list = List<String>();
+    List<String> locations = List<String>();
 
-    list = prefs.getStringList(key) ?? [];
+    locations = prefs.getStringList(key) ?? [];
 
-    list.add(location);
+    locations.add(location);
 
-    return await prefs.setStringList(key, list);
+    await prefs.setStringList(key, locations);
+
+    return locations;
   }
 
   Future<void> clearLocations() async {
